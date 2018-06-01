@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+badFiles=()
+while IFS= read -r -u3 -d $'\0' file; do
+	if [ "$(cat "$file" | gofmt -l)" ]; then
+		badFiles+=("$file")
+	fi
+done 3< <(find . -xtype f -name '*.go' -print0 | grep -zZ -v -e '^./vendor/' -e '^./.gopath/')
+
+if [ ${#badFiles[@]} -eq 0 ]; then
+	>&2 echo -e 'All Go source files are properly formatted.\n'
+else
+	>&2 echo "These files are not properly gofmt'd:"
+	for f in "${badFiles[@]}"; do
+		>&2 echo " - $f"
+	done
+	>&2 echo -e '\nPlease reformat the above files using "gofmt -w" and commit the result.\n'
+	exit 2
+fi
