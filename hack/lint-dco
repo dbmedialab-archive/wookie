@@ -1,0 +1,45 @@
+#!/bin/bash
+
+cover="origin/master..HEAD"
+
+adds=$(git diff "$cover" --numstat | awk '{ s += $1 } END { print s }')
+dels=$(git diff "$cover" --numstat | awk '{ s += $2 } END { print s }')
+
+: ${adds:=0}
+: ${dels:=0}
+
+dcoPrefix='Signed-off-by:'
+dcoRegex="^${dcoPrefix} ([^<]+) <([^<>@]+@[^<>]+)>$"
+
+if [ $adds -eq 0 -a $dels -eq 0 ]; then
+	echo '0 adds, 0 deletions; nothing to validate.'
+	echo
+else
+	commits=( $(git log "$cover" --format='format:%H%n') )
+	badCommits=()
+	for commit in "${commits[@]}"; do
+		if [ -z "$(git log -1 --format='format:' --name-status "$commit")" ]; then
+			# no content (ie, Merge commit, etc)
+			continue
+		fi
+		if ! git log -1 --format='format:%B' "$commit" | grep -qE "$dcoRegex"; then
+			badCommits+=("$commit")
+		fi
+	done
+	if [ ${#badCommits[@]} -eq 0 ]; then
+		echo "All ${#commits[@]} commits are properly signed with the DCO!"
+		echo
+	else
+		{
+			echo "These commits do not have a proper '$dcoPrefix' marker:"
+			for commit in "${badCommits[@]}"; do
+				echo " - $commit"
+			done
+			echo
+			echo 'Please amend each commit to include a properly formatted DCO marker.'
+			echo 'See the CONTRIBUTING docs.  (`git commit --amend -s` does the right thing.)'
+			echo
+		} >&2
+		false
+	fi
+fi
