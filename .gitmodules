@@ -1,0 +1,6 @@
+[submodule ".gopath/src/github.com/shurcooL/sanitized_anchor_name"]
+	path = .gopath/src/github.com/shurcooL/sanitized_anchor_name
+	url = https://github.com/shurcooL/sanitized_anchor_name
+[submodule ".gopath/src/github.com/russross/blackfriday"]
+	path = .gopath/src/github.com/russross/blackfriday
+	url = https://github.com/russross/blackfriday
