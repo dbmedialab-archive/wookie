@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang
+    steps:
+      - checkout
+      - run: git submodule update --init
+      - run: git clone https://github.com/warpfork/gof .gof
+      - run: .gof/gof install ./cmd/...
+      - run: .gof/gof test ./...
